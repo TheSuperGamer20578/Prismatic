@@ -13,7 +13,8 @@ mkShell {
     buildInputs = [
         rust-toolchain
         clippy
-        cargo-shuttle
+        openssl
+        pkg-config
     ];
     RUST_BACKTRACE = 1;
 }
