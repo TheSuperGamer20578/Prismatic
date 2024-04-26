@@ -15,6 +15,7 @@ mkShell {
         clippy
         openssl
         pkg-config
+        cmake
     ];
     RUST_BACKTRACE = 1;
 }

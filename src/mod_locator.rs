@@ -1,17 +1,18 @@
-use std::fs;
+use tokio::fs;
 use std::path::PathBuf;
 use anyhow::anyhow;
+use async_recursion::async_recursion;
 use json_comments::StripComments;
 use serde::{Deserialize, Deserializer};
 use serde::de::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Mod {
     pub path: PathBuf,
     pub manifest: Manifest,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Manifest {
     pub name: Option<String>,
@@ -23,7 +24,7 @@ pub struct Manifest {
     pub update_keys: Vec<UpdateKey>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UpdateKey {
     pub source: String,
     pub id: String,
@@ -61,7 +62,8 @@ impl<'de> Deserialize<'de> for UpdateKey {
     }
 }
 
-pub fn locate_mods(dir: &PathBuf) -> anyhow::Result<Vec<Mod>> {
+#[async_recursion]
+pub async fn locate_mods(dir: &PathBuf) -> anyhow::Result<Vec<Mod>> {
     let mut mods = Vec::with_capacity(dir.read_dir()?.count());
     for subdir in dir.read_dir()?.flatten() {
         if !subdir.file_type()?.is_dir() || subdir.file_name().to_str().ok_or(anyhow!("Invalid directory name"))?.starts_with(".") {
@@ -71,10 +73,10 @@ pub fn locate_mods(dir: &PathBuf) -> anyhow::Result<Vec<Mod>> {
         if manifest.is_file() {
             mods.push(Mod {
                 path: subdir.path(),
-                manifest: serde_json::from_reader(StripComments::new(fs::read_to_string(manifest)?.trim_start_matches('\u{feff}').as_bytes()))?,
+                manifest: serde_json::from_reader(StripComments::new(fs::read_to_string(manifest).await?.trim_start_matches('\u{feff}').as_bytes()))?,
             });
         } else {
-            mods.extend(locate_mods(&subdir.path())?);
+            mods.extend(locate_mods(&subdir.path()).await?);
         }
     }
     Ok(mods)
