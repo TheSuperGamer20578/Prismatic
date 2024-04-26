@@ -1,5 +1,5 @@
 use tokio::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use anyhow::anyhow;
 use async_recursion::async_recursion;
 use json_comments::StripComments;
@@ -63,10 +63,10 @@ impl<'de> Deserialize<'de> for UpdateKey {
 }
 
 #[async_recursion]
-pub async fn locate_mods(dir: &PathBuf) -> anyhow::Result<Vec<Mod>> {
+pub async fn locate_mods(dir: &Path) -> anyhow::Result<Vec<Mod>> {
     let mut mods = Vec::with_capacity(dir.read_dir()?.count());
     for subdir in dir.read_dir()?.flatten() {
-        if !subdir.file_type()?.is_dir() || subdir.file_name().to_str().ok_or(anyhow!("Invalid directory name"))?.starts_with(".") {
+        if !subdir.file_type()?.is_dir() || subdir.file_name().to_str().ok_or(anyhow!("Invalid directory name"))?.starts_with('.') {
             continue
         }
         let manifest = subdir.path().join("manifest.json");

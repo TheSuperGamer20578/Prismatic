@@ -122,9 +122,9 @@ async fn github(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, U
         return Ok((mod_, UpdateResult::AlreadyUpToDate));
     }
     let assets: Vec<_> = release.assets.iter()
-        .filter(|asset| asset.name.ends_with(".zip"))
+        .filter(|asset| asset.name.to_lowercase().ends_with(".zip"))
         .collect();
-    if assets.len() == 0 {
+    if assets.is_empty() {
         return Ok((mod_, UpdateResult::Failure("No valid release assets found".into())));
     }
     if assets.len() > 1 {
@@ -146,7 +146,7 @@ async fn nexus(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, Up
     }
     let file_id;
     {
-        let document = Html::parse_document(&*reqwest_client().await
+        let document = Html::parse_document(&reqwest_client().await
             .get(format!("https://nexusmods.com/stardewvalley/mods/{}?tab=files", update_key.id))
             .send().await?
             .error_for_status()?
