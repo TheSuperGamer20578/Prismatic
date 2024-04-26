@@ -19,6 +19,10 @@ use crate::update::update;
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
 struct Args {
+    /// Directory that contains mods
+    /// 
+    /// Defaults to ~/.steam/steam/steamapps/common/Stardew Valley/Mods on Unix based systems
+    /// and C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods on Windows
     #[clap(long, short = 'd')]
     mods_dir: Option<PathBuf>,
     #[clap(subcommand)]
@@ -27,14 +31,19 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    /// Not yet implemented
     Add {
         source: String,
     },
+    /// Not yet implemented
     Remove {
         id: String,
     },
+    /// Lists all installed mods
     List,
+    /// Updates all installed mods if needed
     Update {
+        /// Skip the update check and update all mods
         #[clap(long, short)]
         force: bool,
     },

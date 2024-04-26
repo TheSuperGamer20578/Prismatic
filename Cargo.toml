@@ -2,6 +2,8 @@
 name = "prismatic"
 version = "0.1.0"
 edition = "2021"
+description = "A CLI tool for updating Stardew Valley mods."
+authors = ["TheSuperGamer20578"]
 
 [dependencies]
 anyhow = { version = "1.0.82", features = ["backtrace"] }
