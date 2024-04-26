@@ -37,8 +37,8 @@ pub trait UpdateKeys {
 
 impl UpdateKeys for [UpdateKey] {
     fn preferred(&self) -> Option<&UpdateKey> {
-        self.iter().find(|key| key.source.to_lowercase() == "github")
-            .or_else(|| self.iter().find(|key| key.source.to_lowercase() == "nexus"))
+        self.iter().find(|key| cfg!(feature = "github") && key.source.to_lowercase() == "github")
+            .or_else(|| self.iter().find(|key| cfg!(feature = "nexus") && key.source.to_lowercase() == "nexus"))
     }
 }
 

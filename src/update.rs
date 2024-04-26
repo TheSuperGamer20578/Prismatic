@@ -1,19 +1,19 @@
 use std::collections::HashSet;
-use std::future::Future;
 use std::io::Cursor;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 use anyhow::{anyhow, bail, Result};
 use async_recursion::async_recursion;
 use bytes::Bytes;
-use reqwest::{Request, RequestBuilder};
+#[cfg(feature = "nexus")]
 use scraper::{Html, Selector};
 use serde_json::json;
 use tokio::fs;
 use tokio::sync::OnceCell;
 use tokio::task::JoinSet;
 use zip::ZipArchive;
-use crate::mod_locator::{Manifest, Mod, UpdateKey, UpdateKeys};
+use crate::mod_locator::{Mod, UpdateKey, UpdateKeys};
 
+#[cfg(feature = "nexus")]
 static NEXUS_AUTH: OnceCell<String> = OnceCell::const_new();
 static REQWEST: OnceCell<reqwest::Client> = OnceCell::const_new();
 
@@ -25,7 +25,7 @@ pub async fn update(mods: &Vec<Mod>, mods_dir: &PathBuf, force: bool) -> Result<
     let mut updated = 0;
     let mut failed = 0;
     let mut skipped = 0;
-    let mut set = JoinSet::new();
+    let mut set: JoinSet<Result<(Mod, UpdateResult)>> = JoinSet::new();
     for mod_ in mods {
         let name = mod_.manifest.name.clone().unwrap_or(mod_.path.strip_prefix(mods_dir)?.display().to_string());
         if let Some(source) = mod_.manifest.update_keys.preferred() {
@@ -35,8 +35,8 @@ pub async fn update(mods: &Vec<Mod>, mods_dir: &PathBuf, force: bool) -> Result<
                 continue;
             }
             match &*source.source.to_lowercase() {
-                "github" => {set.spawn(github(mod_.clone(), source.clone(), force));}
-                "nexus" => {set.spawn(nexus(mod_.clone(), source.clone(), force));}
+                #[cfg(feature = "github")] "github" => {set.spawn(github(mod_.clone(), source.clone(), force));}
+                #[cfg(feature = "nexus")] "nexus" => {set.spawn(nexus(mod_.clone(), source.clone(), force));}
                 _ => unreachable!()
             }
         } else {
@@ -107,6 +107,7 @@ async fn check_for_updates(mod_: &Mod) -> Result<bool> {
     )
 }
 
+#[cfg(feature = "github")]
 async fn github(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, UpdateResult)> {
     if !force && !check_for_updates(&mod_).await? {
         return Ok((mod_, UpdateResult::AlreadyUpToDate));
@@ -138,6 +139,7 @@ async fn github(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, U
     Ok((mod_, UpdateResult::Success {new_version: version.into()}))
 }
 
+#[cfg(feature = "nexus")]
 async fn nexus(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, UpdateResult)> {
     if !force && !check_for_updates(&mod_).await? {
         return Ok((mod_, UpdateResult::AlreadyUpToDate));
