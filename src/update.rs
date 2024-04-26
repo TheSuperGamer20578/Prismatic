@@ -193,10 +193,11 @@ async fn nexus(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, Up
 }
 
 async fn install(mod_: &Mod, archive: Bytes) -> Result<()> {
-    let old_dir = mod_.path.join("../.old/").canonicalize()?;
+    let old_dir = mod_.path.join("../.old/");
     if !old_dir.is_dir() {
         fs::create_dir(&old_dir).await?;
     }
+    let old_dir = old_dir.canonicalize()?;
     let old_subdir = old_dir.join(format!("{} - {}", mod_.path.file_name().unwrap().to_string_lossy(), mod_.manifest.version.clone().unwrap_or("unknown".into())));
     if old_subdir.is_dir() {
         bail!("File exists: {}", old_subdir.display());
