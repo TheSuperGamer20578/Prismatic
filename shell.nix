@@ -16,6 +16,7 @@ mkShell {
         openssl
         pkg-config
         cmake
+        python3
     ];
     RUST_BACKTRACE = 1;
 }
