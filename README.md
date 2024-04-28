@@ -13,6 +13,11 @@ and `C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods` on Windo
 if Stardew Valley is installed to an atypical location you can specify it with `-d <dir>`
 (e.g. `prismatic -d <dir> update`)
 
-## Nexus Mods
+### Nexus Mods
 Nexus support is achieved via grabbing your `sid_develop` cookie from your browser, therefore you must be signed in to
 download mods from Nexus. If you are uncomfortable with this you can compile without the `nexus` feature.
+
+### Config Files
+Currently only files or directories named `config` or `config.json` are copied when updating.
+When updating the mod's directory is moved into `.old` and is otherwise untouched,
+if some config files aren't automatically copied they can manually be copied from there.
