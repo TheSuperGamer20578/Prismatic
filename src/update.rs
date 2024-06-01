@@ -163,7 +163,7 @@ async fn nexus(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, Up
     let auth = NEXUS_AUTH.get_or_try_init(|| async {
         Result::<_, anyhow::Error>::Ok(
             rookie::load(Some(vec! ["nexusmods.com"])).unwrap().iter()
-                .find(|cookie| cookie.name == "sid_develop")
+                .find(|cookie| cookie.name == "nexusmods_session")
                 .ok_or(anyhow!("Could not find Nexus cookie. Please sign in to Nexus in any web browser and try again."))?
                 .value.clone()
         )
@@ -176,7 +176,7 @@ async fn nexus(mod_: Mod, update_key: UpdateKey, force: bool) -> Result<(Mod, Up
                 "game_id": 1303,
             }
         ))
-        .header("Cookie", format!("sid_develop={auth}"))
+        .header("Cookie", format!("nexusmods_session={auth}"))
         .send().await?
         .error_for_status()?
         .json::<serde_json::Value>().await?
